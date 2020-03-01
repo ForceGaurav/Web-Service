@@ -1,0 +1,34 @@
+@RestResource(urlMapping='/Leads/*')
+global class LeadsManager {
+    @HttpGet
+    global static Lead getLeadsById() {
+        RestRequest request = RestContext.request;
+        String LeadID = request.requestURI.substring(request.requestURI.lastIndexOf('/')+1);
+        Lead result =  [SELECT id,name FROM Lead LIMIT 1];
+        return result;
+    }
+    @HttpPost
+    global static String  createLead(String first_name, String last_name,String city,String state,String zip_code,String phone_number,String email_address) {
+        String returnResponse='';
+        try{
+            List<Lead> resultlist =  [SELECT id,name FROM Lead WHERE Phone=:phone_number AND email=:email_address];
+            if(resultlist.size()==0 && resultlist.isEmpty()){
+                Lead Leadrecord = new Lead();
+                Leadrecord.FirstName=first_name;  
+                Leadrecord.LastName=last_name;
+                Leadrecord.City=city;
+                Leadrecord.State=state;
+                Leadrecord.PostalCode=zip_code;
+                Leadrecord.Phone=phone_number;
+                Leadrecord.Email=email_address;
+                insert Leadrecord;
+                returnResponse = JSON.serialize(Leadrecord);
+            }
+        }
+        catch(Exception e){
+            System.debug('Exception '+e.getMessage());
+            returnResponse=JSON.serialize('{"Message":"We are facing some issue. Please contact your System admin."}');
+        }
+        return returnResponse;
+    }
+}
